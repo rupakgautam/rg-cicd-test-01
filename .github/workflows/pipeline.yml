@@ -1,0 +1,45 @@
+name: data-pipeline
+
+# WHEN does the robot run?
+#   - on every push to main or dev
+#   - on every pull request targeting main or dev (so CI checks a change BEFORE it merges)
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  clean-validate:
+    runs-on: ubuntu-latest          # the robot runs on a fresh Linux machine in the cloud
+    steps:
+      # 1. Copy your repo onto the machine
+      - uses: actions/checkout@v4
+
+      # 2. Install Python 3.11
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Install dependencies listed in requirements.txt (pydantic)
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 4. CLEAN: data/raw -> data/cleaned
+      - name: Clean
+        run: python src/01_clean.py
+
+      # 5. VALIDATE: data/cleaned -> data/validated (valid) + data/invalid (rejected)
+      - name: Validate
+        run: python src/02_validate.py
+
+      # 6. STORE: publish the JSON outputs + logs as a downloadable artifact
+      - name: Upload pipeline output
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-output
+          path: |
+            data/cleaned/
+            data/validated/
+            data/invalid/
+            logs/

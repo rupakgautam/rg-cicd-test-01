@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Generated pipeline outputs (produced by the scripts / CI) — not source, so don't track
+data/cleaned/
+data/validated/
+data/invalid/
+logs/
